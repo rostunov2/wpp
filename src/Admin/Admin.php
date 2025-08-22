@@ -1203,21 +1203,27 @@ class Admin {
     {
         global $wpdb;
 
-        $wpp_transients = $wpdb->get_results("SELECT tkey FROM {$wpdb->prefix}popularpoststransients;"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+        $like = $wpdb->esc_like('_transient_wpp_') . '%';
+        $transients = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s",
+                $like
+            )
+        ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.NotPrepared
 
-        if ( $wpp_transients && is_array($wpp_transients) && ! empty($wpp_transients) ) {
-            foreach( $wpp_transients as $wpp_transient ) {
+        if ( $transients && is_array($transients) && ! empty($transients) ) {
+            foreach ( $transients as $transient ) {
+                $key = str_replace('_transient_', '', $transient);
+
                 try {
-                    delete_transient($wpp_transient->tkey);
-                } catch (\Throwable $e) {
+                    delete_transient($key);
+                } catch ( \Throwable $e ) {
                     if ( defined('WP_DEBUG') && WP_DEBUG ) {
-                        error_log( "Error: " . $e->getMessage() );
+                        error_log( 'Error: ' . $e->getMessage() );
                     }
                     continue;
                 }
             }
-
-            $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}popularpoststransients;");
         }
     }
 

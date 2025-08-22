@@ -57,7 +57,7 @@ function wpp_get_views(?int $id = null, $range = null, $number_format = true, $c
     $key = 'wpp_views_' . $id . '_' . md5(json_encode($args));
 
     if ( $cache ) {
-        $results = \WordPressPopularPosts\Cache::get($key);
+        $results = get_transient($key);
     }
 
     if ( ! $results ) {
@@ -161,7 +161,7 @@ function wpp_get_views(?int $id = null, $range = null, $number_format = true, $c
     }
 
     if ( $cache ) {
-        \WordPressPopularPosts\Cache::set($key, $results);
+        set_transient($key, $results, 60);
     }
 
     if ( $number_format ) {
